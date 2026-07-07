@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Hành trình An toàn giao thông</title>
+<style>
+:root {
+  --bg1:#0f2027; --bg2:#203a43; --bg3:#2c5364;
+  --glass: rgba(255,255,255,.14);
+  --glass2: rgba(255,255,255,.22);
+  --text:#f8fbff; --muted:#cfe9ff;
+  --green:#21d07a; --red:#ff4d6d; --yellow:#ffd166; --blue:#4cc9f0;
+}
+* { box-sizing: border-box; }
+body {
+  margin:0; min-height:100vh; font-family: system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+  color:var(--text); overflow-x:hidden;
+  background: linear-gradient(135deg,var(--bg1),var(--bg2),var(--bg3));
+}
+.sky {
+  position:fixed; inset:0; overflow:hidden; z-index:-5;
+  background: linear-gradient(#14537a 0%, #72c6ef 55%, #e9f8ff 56%, #24515f 57%, #101820 100%);
+}
+.cloud { position:absolute; font-size:52px; opacity:.75; animation: cloudMove 36s linear infinite; filter: blur(.2px); }
+.cloud.c1 { top:8%; left:-120px; animation-duration:42s; }
+.cloud.c2 { top:21%; left:-260px; animation-duration:56s; font-size:44px; }
+.cloud.c3 { top:13%; left:-430px; animation-duration:67s; font-size:60px; }
+@keyframes cloudMove { to { transform: translateX(calc(100vw + 560px)); } }
+.road {
+  position:fixed; left:0; right:0; bottom:0; height:28vh; z-index:-4;
+  background: linear-gradient(#2c3e50, #101820);
+  clip-path: polygon(0 38%,100% 16%,100% 100%,0 100%);
+}
+.road:before {
+  content:""; position:absolute; left:0; right:0; top:48%; height:8px;
+  background: repeating-linear-gradient(90deg, transparent 0 42px, rgba(255,255,255,.85) 42px 88px, transparent 88px 135px);
+  transform: rotate(-4deg); animation: lineMove .9s linear infinite;
+}
+@keyframes lineMove { to { background-position: 135px 0; } }
+.tree { position:fixed; bottom:20vh; font-size:58px; z-index:-3; animation: treeWiggle 2.5s ease-in-out infinite alternate; opacity:.85; }
+.t1 { left:5%; } .t2 { left:89%; bottom:22vh; font-size:70px; animation-delay:.7s; }
+@keyframes treeWiggle { from { transform:rotate(-2deg); } to { transform:rotate(2deg); } }
+.wrap { width:min(1120px, 94vw); margin:0 auto; padding:24px 0 34px; }
+.screen { display:none; }
+.screen.active { display:block; animation:fadeIn .45s ease; }
+@keyframes fadeIn { from {opacity:0; transform:translateY(10px)} to {opacity:1; transform:translateY(0)} }
+.hero {
+  min-height:92vh; display:grid; place-items:center; text-align:center;
+}
+.hero-card {
+  width:min(820px, 94vw); padding:42px 30px; border-radius:34px;
+  background: linear-gradient(135deg, rgba(255,255,255,.20), rgba(255,255,255,.08));
+  border:1px solid rgba(255,255,255,.28); box-shadow:0 24px 90px rgba(0,0,0,.35);
+  backdrop-filter: blur(16px);
+}
+.logo { font-size:72px; display:inline-block; animation:bounce 1.7s ease-in-out infinite; }
+@keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+h1 { font-size:clamp(34px,6vw,64px); line-height:1.05; margin:12px 0; text-transform:uppercase; letter-spacing:1px; }
+.sub { font-size:clamp(17px,2.5vw,25px); color:var(--muted); margin-bottom:26px; }
+.btn {
+  border:0; border-radius:999px; padding:15px 26px; font-size:17px; font-weight:800; cursor:pointer;
+  color:#06202c; background:linear-gradient(135deg,#fff,#9df3ff); box-shadow:0 12px 28px rgba(0,0,0,.25);
+  transition:.18s transform, .18s filter; margin:6px;
+}
+.btn:hover { transform:translateY(-2px) scale(1.02); filter:brightness(1.05); }
+.btn.secondary { background:rgba(255,255,255,.16); color:white; border:1px solid rgba(255,255,255,.30); }
+.btn.danger { background:linear-gradient(135deg,#ffb3c1,#ff4d6d); color:white; }
+.topbar {
+  display:grid; grid-template-columns: 1fr auto; gap:14px; align-items:center; margin-bottom:16px;
+}
+.panel {
+  background:var(--glass); border:1px solid rgba(255,255,255,.22); border-radius:24px;
+  backdrop-filter: blur(14px); box-shadow:0 18px 50px rgba(0,0,0,.22);
+}
+.progress-panel { padding:18px; }
+.road-mini {
+  position:relative; height:76px; border-radius:18px; overflow:hidden; background:linear-gradient(#4bb6e4 0 52%, #1b2635 52% 100%);
+}
+.road-mini:after {
+  content:""; position:absolute; left:0; right:0; bottom:17px; height:5px;
+  background:repeating-linear-gradient(90deg, transparent 0 25px, #fff 25px 60px, transparent 60px 86px);
+  opacity:.9; animation:lineMove .8s linear infinite;
+}
+.car {
+  position:absolute; left:0%; bottom:20px; font-size:38px; z-index:2; transition:left .55s cubic-bezier(.2,1,.2,1);
+  filter: drop-shadow(0 5px 5px rgba(0,0,0,.35)); animation: carIdle .65s ease-in-out infinite alternate;
+}
+@keyframes carIdle { from{transform:translateY(0)} to{transform:translateY(-2px)} }
+.car.shake { animation:shake .35s linear 2; }
+@keyframes shake { 0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)} }
+.finish { position:absolute; right:10px; bottom:20px; font-size:38px; z-index:2; }
+.meta { display:flex; justify-content:space-between; gap:12px; margin-top:12px; color:var(--muted); font-weight:700; flex-wrap:wrap; }
+.stats { display:grid; grid-template-columns:repeat(2, minmax(86px,1fr)); gap:10px; padding:14px; min-width:240px; }
+.stat { padding:10px 12px; border-radius:16px; background:rgba(255,255,255,.13); text-align:center; }
+.stat b { display:block; font-size:24px; color:white; }
+.sound { display:flex; align-items:center; justify-content:center; gap:8px; }
+.game-card { padding:24px; }
+.q-head { display:flex; justify-content:space-between; align-items:center; gap:12px; color:var(--muted); margin-bottom:14px; font-weight:800; }
+.badge { padding:8px 14px; border-radius:999px; background:rgba(255,255,255,.14); }
+.question { font-size:clamp(21px,3.2vw,32px); line-height:1.35; font-weight:850; margin:12px 0 20px; }
+.answers { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+.answer {
+  text-align:left; width:100%; min-height:86px; border:1px solid rgba(255,255,255,.22); border-radius:22px;
+  background:linear-gradient(135deg, rgba(255,255,255,.20), rgba(255,255,255,.09)); color:white;
+  padding:17px 18px; font-size:17px; cursor:pointer; transition:.18s; display:flex; gap:13px; align-items:flex-start;
+}
+.answer:hover { transform:translateY(-2px); background:rgba(255,255,255,.25); }
+.answer .letter { flex:0 0 auto; width:36px; height:36px; border-radius:12px; display:grid; place-items:center; background:rgba(255,255,255,.24); font-weight:900; }
+.answer.correct { background:linear-gradient(135deg, rgba(33,208,122,.95), rgba(0,150,92,.75)); border-color:rgba(171,255,218,.9); }
+.answer.wrong { background:linear-gradient(135deg, rgba(255,77,109,.95), rgba(150,0,36,.75)); border-color:rgba(255,200,211,.9); }
+.answer.disabled { pointer-events:none; opacity:.86; }
+.feedback { min-height:56px; margin-top:18px; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+.msg { font-size:22px; font-weight:900; }
+.msg.ok { color:#a8ffd2; } .msg.bad { color:#ffd1da; }
+.speed {
+  width:132px; height:76px; border-radius:76px 76px 14px 14px; background:rgba(0,0,0,.25); border:1px solid rgba(255,255,255,.22);
+  position:relative; overflow:hidden; text-align:center; padding-top:38px; font-weight:900;
+}
+.needle { position:absolute; width:54px; height:4px; background:var(--yellow); left:50%; bottom:18px; transform-origin:0 50%; transform:rotate(-150deg); transition:.45s; border-radius:10px; }
+.actions { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:22px; }
+.result-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin:22px 0; }
+.big-stat { padding:20px 12px; text-align:center; }
+.big-stat b { display:block; font-size:34px; }
+.trophy { font-size:86px; animation:bounce 1.8s ease-in-out infinite; }
+.confetti { pointer-events:none; position:fixed; inset:0; overflow:hidden; z-index:20; }
+.confetti span { position:absolute; top:-20px; width:10px; height:18px; background:var(--yellow); animation:fall 2.8s linear forwards; }
+@keyframes fall { to { transform:translateY(110vh) rotate(700deg); opacity:.2; } }
+.review-list { max-height:54vh; overflow:auto; text-align:left; padding:10px; }
+.review-item { background:rgba(255,255,255,.12); border-radius:16px; padding:14px; margin:10px 0; }
+@media (max-width:760px) {
+  .topbar { grid-template-columns:1fr; }
+  .stats { grid-template-columns:repeat(4,1fr); min-width:0; }
+  .stat b { font-size:19px; }
+  .answers { grid-template-columns:1fr; }
+  .result-grid { grid-template-columns:1fr 1fr; }
+  .question { font-size:21px; }
+}
+</style>
+</head>
+<body>
+<div class="sky">
+  <div class="cloud c1">☁️</div><div class="cloud c2">☁️</div><div class="cloud c3">☁️</div>
+</div>
+<div class="tree t1">🌳</div><div class="tree t2">🌴</div><div class="road"></div>
+<div class="confetti" id="confetti"></div>
+
+<main class="wrap">
+  <section id="startScreen" class="screen active hero">
+    <div class="hero-card">
+      <div class="logo">🚦</div>
+      <h1>Hành trình<br>An toàn giao thông</h1>
+      <div class="sub">Mini game ôn luyện 120 câu hỏi Luật Trật tự, An toàn giao thông đường bộ</div>
+      <button class="btn" onclick="startGame(false)">🚗 BẮT ĐẦU HÀNH TRÌNH</button>
+      <button class="btn secondary" id="continueBtn" onclick="continueGame()" style="display:none">▶️ TIẾP TỤC LẦN TRƯỚC</button>
+      <button class="btn secondary" onclick="showGuide()">📖 HƯỚNG DẪN</button>
+      <div style="margin-top:18px;color:#e7f7ff;font-weight:700">Chơi đủ 120 câu • Có lưu tiến trình • Ôn lại câu sai</div>
+    </div>
+  </section>
+
+  <section id="guideScreen" class="screen hero">
+    <div class="hero-card">
+      <div class="logo">🛣️</div>
+      <h1>Hướng dẫn</h1>
+      <p class="sub">Chọn một đáp án A, B, C hoặc D. Đúng được cộng 10 điểm. Sai sẽ hiện đáp án đúng để ôn lại. Có thể tắt/bật âm thanh ở góc thống kê.</p>
+      <button class="btn" onclick="startGame(false)">Bắt đầu</button>
+      <button class="btn secondary" onclick="showStart()">Quay lại</button>
+    </div>
+  </section>
+
+  <section id="gameScreen" class="screen">
+    <div class="topbar">
+      <div class="panel progress-panel">
+        <div class="road-mini">
+          <div class="car" id="car">🚗</div>
+          <div class="finish">🏁</div>
+        </div>
+        <div class="meta">
+          <span id="progressText">Câu 1 / 120</span>
+          <span id="percentText">0%</span>
+        </div>
+      </div>
+      <div class="panel stats">
+        <div class="stat">Điểm<b id="scoreText">0</b></div>
+        <div class="stat">Đúng<b id="rightText">0</b></div>
+        <div class="stat">Sai<b id="wrongText">0</b></div>
+        <button class="stat sound" onclick="toggleSound()" id="soundBtn">🔊<b>ON</b></button>
+      </div>
+    </div>
+
+    <div class="panel game-card">
+      <div class="q-head">
+        <span class="badge" id="questionNo">🚦 Câu 1</span>
+        <span class="badge" id="remainText">Còn 119 câu</span>
+      </div>
+      <div class="question" id="questionText"></div>
+      <div class="answers" id="answers"></div>
+      <div class="feedback">
+        <div class="msg" id="message"></div>
+        <div class="speed">
+          <div class="needle" id="needle"></div>
+          <span id="speedText">0 km/h</span>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn secondary" onclick="saveAndExit()">🏠 Về màn hình đầu</button>
+        <button class="btn danger" onclick="resetProgress()">🔄 Làm lại</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="resultScreen" class="screen hero">
+    <div class="hero-card">
+      <div class="trophy">🏆</div>
+      <h1>Hoàn thành!</h1>
+      <div class="sub" id="rankText"></div>
+      <div class="result-grid">
+        <div class="panel big-stat">Tổng câu<b>120</b></div>
+        <div class="panel big-stat">Đúng<b id="finalRight">0</b></div>
+        <div class="panel big-stat">Sai<b id="finalWrong">0</b></div>
+        <div class="panel big-stat">Điểm<b id="finalScore">0</b></div>
+      </div>
+      <div class="actions">
+        <button class="btn" onclick="startGame(false)">🔄 Chơi lại toàn bộ</button>
+        <button class="btn secondary" id="wrongOnlyBtn" onclick="startWrongOnly()">❌ Ôn câu sai</button>
+        <button class="btn secondary" onclick="showReview()">📖 Xem câu sai</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="reviewScreen" class="screen hero">
+    <div class="hero-card" style="width:min(960px,94vw)">
+      <h1>Câu cần ôn lại</h1>
+      <div class="review-list" id="reviewList"></div>
+      <button class="btn" onclick="showResult()">Quay lại kết quả</button>
+    </div>
+  </section>
+</main>
+
+<script>
+var QUESTIONS = [{"num": 1, "question": "Luật Trật tự, an toàn giao thông đường bộ năm 2024 chính thức có hiệu lực thi hành từ ngày nào?", "options": [{"letter": "A", "text": "01/7/2025."}, {"letter": "B", "text": "01/01/2024."}, {"letter": "C", "text": "01/01/2025."}, {"letter": "D", "text": "01/7/2024."}], "answer": "C"}, {"num": 2, "question": "Luật Trật tự, an toàn giao thông đường bộ năm 2024 gồm bao nhiêu chương và bao nhiêu điều?", "options": [{"letter": "A", "text": "8 chương, 89 điều."}, {"letter": "B", "text": "9 chương, 89 điều."}, {"letter": "C", "text": "9 chương, 88 điều."}, {"letter": "D", "text": "8 chương, 90 điều."}], "answer": "B"}, {"num": 3, "question": "Khái niệm \"đường bộ\" theo quy định hiện hành bao gồm những thành phần nào?", "options": [{"letter": "A", "text": "Đường, cầu đường bộ, hầm đường bộ, bến phà đường bộ."}, {"letter": "B", "text": "Đường, dải phân cách và hành lang an toàn."}, {"letter": "C", "text": "Đường xe chạy và vỉa hè."}, {"letter": "D", "text": "Đường và cầu đường bộ."}], "answer": "A"}, {"num": 4, "question": "Cơ quan nào chịu trách nhiệm chính trước Chính phủ về quản lý nhà nước về trật tự, an toàn giao thông đường bộ?", "options": [{"letter": "A", "text": "Bộ Công an."}, {"letter": "B", "text": "Bộ Tư pháp."}, {"letter": "C", "text": "Bộ Giao thông vận tải."}, {"letter": "D", "text": "Ủy ban An toàn giao thông Quốc gia."}], "answer": "A"}, {"num": 5, "question": "Giấy phép lái xe hạng A1 theo luật mới cấp cho người điều khiển loại xe nào?", "options": [{"letter": "A", "text": "Xe mô tô hai bánh có dung tích xi-lanh đến 125 cm³ hoặc động cơ điện đến 11 kW."}, {"letter": "B", "text": "Xe gắn máy dưới 50 cm³."}, {"letter": "C", "text": "Xe mô tô hai bánh từ 50 cm³ đến dưới 175 cm³."}, {"letter": "D", "text": "Xe mô tô từ 125 cm³ trở lên."}], "answer": "A"}, {"num": 6, "question": "Người sở hữu giấy phép lái xe hạng A theo luật mới được điều khiển loại xe nào?", "options": [{"letter": "A", "text": "Tất cả các loại xe ô tô con."}, {"letter": "B", "text": "Xe mô tô ba bánh chở hàng."}, {"letter": "C", "text": "Xe mô tô hai bánh có dung tích xi-lanh trên 125 cm³ hoặc động cơ điện trên 11 kW."}, {"letter": "D", "text": "Chỉ xe mô tô từ 175 cm³ trở lên."}], "answer": "C"}, {"num": 7, "question": "Giấy phép lái xe hạng B theo quy định mới cấp cho người lái xe ô tô chở người đến bao nhiêu chỗ ngồi?", "options": [{"letter": "A", "text": "Đến 7 chỗ."}, {"letter": "B", "text": "Đến 9 chỗ, kể cả chỗ của người lái xe."}, {"letter": "C", "text": "Đến 16 chỗ."}, {"letter": "D", "text": "Không giới hạn số chỗ."}], "answer": "B"}, {"num": 8, "question": "Giấy phép lái xe hạng B cấp cho người lái xe tải có khối lượng toàn bộ theo thiết kế tối đa là bao nhiêu?", "options": [{"letter": "A", "text": "Trên 3.500 kg."}, {"letter": "B", "text": "Đến 7.500 kg."}, {"letter": "C", "text": "Đến 3.500 kg."}, {"letter": "D", "text": "Đến 5.000 kg."}], "answer": "C"}, {"num": 9, "question": "Để điều khiển xe ô tô tải có khối lượng toàn bộ theo thiết kế trên 7.500 kg, người lái xe phải có giấy phép lái xe hạng nào?", "options": [{"letter": "A", "text": "Hạng C."}, {"letter": "B", "text": "Hạng B."}, {"letter": "C", "text": "Hạng C1."}, {"letter": "D", "text": "Hạng D2."}], "answer": "A"}, {"num": 10, "question": "Giấy phép lái xe hạng D2 theo hệ thống phân hạng mới cấp cho người lái xe ô tô chở người loại nào?", "options": [{"letter": "A", "text": "Từ 18 đến 30 chỗ, kể cả chỗ của người lái xe."}, {"letter": "B", "text": "Từ 10 đến 17 chỗ, kể cả chỗ của người lái xe."}, {"letter": "C", "text": "Chỉ xe giường nằm."}, {"letter": "D", "text": "Trên 30 chỗ, kể cả chỗ của người lái xe."}], "answer": "A"}, {"num": 11, "question": "Giấy phép lái xe hạng D cấp cho người lái xe ô tô chở người có số chỗ ngồi là bao nhiêu?", "options": [{"letter": "A", "text": "Trên 16 chỗ."}, {"letter": "B", "text": "Xe container."}, {"letter": "C", "text": "Trên 30 chỗ, kể cả chỗ của người lái xe."}, {"letter": "D", "text": "Từ 10 đến 30 chỗ."}], "answer": "C"}, {"num": 12, "question": "Theo luật mới, mỗi giấy phép lái xe có tổng cộng bao nhiêu điểm trong một năm?", "options": [{"letter": "A", "text": "10 điểm."}, {"letter": "B", "text": "12 điểm."}, {"letter": "C", "text": "50 điểm."}, {"letter": "D", "text": "20 điểm."}], "answer": "B"}, {"num": 13, "question": "Khi giấy phép lái xe bị trừ hết điểm, người lái xe muốn phục hồi điểm phải làm gì?", "options": [{"letter": "A", "text": "Chờ sau 12 tháng tự phục hồi."}, {"letter": "B", "text": "Nộp tiền phạt tự động."}, {"letter": "C", "text": "Đổi giấy phép lái xe mới."}, {"letter": "D", "text": "Sau ít nhất 06 tháng phải tham gia kiểm tra kiến thức pháp luật và đạt yêu cầu."}], "answer": "D"}, {"num": 14, "question": "Nếu giấy phép lái xe chưa bị trừ hết điểm, sau bao lâu kể từ lần trừ điểm gần nhất, nếu không bị trừ tiếp, sẽ được phục hồi đủ 12 điểm?", "options": [{"letter": "A", "text": "24 tháng."}, {"letter": "B", "text": "12 tháng."}, {"letter": "C", "text": "03 tháng."}, {"letter": "D", "text": "06 tháng."}], "answer": "B"}, {"num": 15, "question": "Người đủ bao nhiêu tuổi trở lên thì được điều khiển xe gắn máy?", "options": [{"letter": "A", "text": "Đủ 18 tuổi."}, {"letter": "B", "text": "Đủ 16 tuổi."}, {"letter": "C", "text": "Đủ 15 tuổi."}, {"letter": "D", "text": "Đủ 14 tuổi."}], "answer": "B"}, {"num": 16, "question": "Người đủ bao nhiêu tuổi trở lên thì được điều khiển xe mô tô hai bánh hạng A1, A và xe ô tô hạng B?", "options": [{"letter": "A", "text": "Đủ 21 tuổi."}, {"letter": "B", "text": "Đủ 16 tuổi."}, {"letter": "C", "text": "Đủ 18 tuổi."}, {"letter": "D", "text": "Đủ 17 tuổi."}], "answer": "C"}, {"num": 17, "question": "Tuổi tối đa của người lái xe ô tô chở người trên 29 chỗ, không kể chỗ của người lái xe, được quy định thế nào?", "options": [{"letter": "A", "text": "Không giới hạn độ tuổi."}, {"letter": "B", "text": "Đủ 60 tuổi cho cả nam và nữ."}, {"letter": "C", "text": "Đủ 50 tuổi đối với nữ, đủ 55 tuổi đối với nam."}, {"letter": "D", "text": "Đủ 55 tuổi đối với nữ, đủ 57 tuổi đối với nam."}], "answer": "D"}, {"num": 18, "question": "Ứng dụng định danh điện tử nào được pháp luật công nhận để xuất trình các loại giấy tờ khi Cảnh sát giao thông kiểm tra?", "options": [{"letter": "A", "text": "VNeID."}, {"letter": "B", "text": "eTax."}, {"letter": "C", "text": "VssID."}, {"letter": "D", "text": "PC-Covid."}], "answer": "A"}, {"num": 19, "question": "\"Phương tiện giao thông đường bộ\" gồm những loại nào?", "options": [{"letter": "A", "text": "Xe ô tô, xe máy và xe máy chuyên dùng."}, {"letter": "B", "text": "Xe cơ giới và xe chuyên dùng."}, {"letter": "C", "text": "Phương tiện giao thông cơ giới đường bộ, phương tiện giao thông thô sơ đường bộ, xe máy chuyên dùng và các loại xe tương tự."}, {"letter": "D", "text": "Tất cả các phương tiện di chuyển trên đường."}], "answer": "C"}, {"num": 20, "question": "\"Phương tiện giao thông cơ giới đường bộ\" gồm những loại nào?", "options": [{"letter": "A", "text": "Chỉ gồm xe ô tô, xe tải và xe khách."}, {"letter": "B", "text": "Chỉ gồm xe ô tô và xe mô tô."}, {"letter": "C", "text": "Xe ô tô; rơ moóc, sơ mi rơ moóc được kéo bởi xe ô tô; xe chở người bốn bánh có gắn động cơ; xe chở hàng bốn bánh có gắn động cơ; xe mô tô; xe gắn máy và các loại xe tương tự."}, {"letter": "D", "text": "Xe đạp, xe xích lô, xe lăn dùng cho người khuyết tật."}], "answer": "C"}, {"num": 21, "question": "\"Người tham gia giao thông đường bộ\" gồm những thành phần nào?", "options": [{"letter": "A", "text": "Người điều khiển, người sử dụng phương tiện."}, {"letter": "B", "text": "Người đi bộ trên đường bộ."}, {"letter": "C", "text": "Người dẫn dắt súc vật."}, {"letter": "D", "text": "Tất cả các thành phần trên."}], "answer": "D"}, {"num": 22, "question": "Ai được coi là \"người điều khiển giao thông\"?", "options": [{"letter": "A", "text": "Thanh tra giao thông đang đi tuần tra."}, {"letter": "B", "text": "Người đi bộ qua đường."}, {"letter": "C", "text": "Tài xế xe cứu thương."}, {"letter": "D", "text": "Cảnh sát giao thông; người được giao nhiệm vụ hướng dẫn giao thông tại nơi thi công, ùn tắc, bến phà, cầu đi chung đường sắt."}], "answer": "D"}, {"num": 23, "question": "Hành vi điều khiển phương tiện tham gia giao thông mà trong máu hoặc hơi thở có nồng độ cồn bị nghiêm cấm ở mức nào?", "options": [{"letter": "A", "text": "Chỉ cấm đối với người lái xe ô tô."}, {"letter": "B", "text": "Cấm tuyệt đối; cứ có nồng độ cồn là vi phạm."}, {"letter": "C", "text": "Chỉ cấm khi vượt quá 50 mg/100 ml máu."}, {"letter": "D", "text": "Chỉ cấm khi vượt quá 0,25 mg/l khí thở."}], "answer": "B"}, {"num": 24, "question": "Sử dụng điện thoại di động khi đang điều khiển phương tiện được quy định thế nào?", "options": [{"letter": "A", "text": "Nghiêm cấm hành vi dùng tay cầm và sử dụng điện thoại khi đang lái xe."}, {"letter": "B", "text": "Chỉ cấm đối với xe khách."}, {"letter": "C", "text": "Được dùng khi xe chạy chậm dưới 10 km/h."}, {"letter": "D", "text": "Được dùng nếu có tai nghe."}], "answer": "A"}, {"num": 25, "question": "Xe máy chuyên dùng gồm những loại nào?", "options": [{"letter": "A", "text": "Xe tải ben trên 10 tấn."}, {"letter": "B", "text": "Xe mô tô phân khối lớn."}, {"letter": "C", "text": "Xe máy thi công, xe máy nông nghiệp, lâm nghiệp và các loại xe đặc chủng khác tham gia giao thông."}, {"letter": "D", "text": "Xe cứu hỏa và xe cứu thương."}], "answer": "C"}, {"num": 26, "question": "\"Hành lang an toàn đường bộ\" là gì?", "options": [{"letter": "A", "text": "Phần đường dành riêng cho xe chạy tốc độ cao."}, {"letter": "B", "text": "Dải đất dọc hai bên đất của đường bộ nhằm bảo đảm an toàn giao thông và bảo vệ công trình đường bộ."}, {"letter": "C", "text": "Vỉa hè dọc hai bên đường phố."}, {"letter": "D", "text": "Làn đường khẩn cấp trên cao tốc."}], "answer": "B"}, {"num": 27, "question": "Thời hạn của giấy phép lái xe hạng B theo quy định mới là bao nhiêu năm?", "options": [{"letter": "A", "text": "Vô thời hạn."}, {"letter": "B", "text": "20 năm."}, {"letter": "C", "text": "10 năm."}, {"letter": "D", "text": "05 năm."}], "answer": "C"}, {"num": 28, "question": "Thời hạn của giấy phép lái xe các hạng C, D1, D2, D là bao nhiêu năm?", "options": [{"letter": "A", "text": "05 năm."}, {"letter": "B", "text": "03 năm."}, {"letter": "C", "text": "Vô thời hạn."}, {"letter": "D", "text": "10 năm."}], "answer": "A"}, {"num": 29, "question": "Biển số xe được cấp và quản lý theo mã định danh của ai?", "options": [{"letter": "A", "text": "Của hãng sản xuất."}, {"letter": "B", "text": "Của địa phương nơi sản xuất xe."}, {"letter": "C", "text": "Của chủ xe, tức biển số định danh."}, {"letter": "D", "text": "Của chiếc xe đó."}], "answer": "C"}, {"num": 30, "question": "Đi bộ, đi xe đạp, xe gắn máy vào đường cao tốc, trừ người và phương tiện phục vụ quản lý, bảo trì đường cao tốc, là hành vi như thế nào?", "options": [{"letter": "A", "text": "Bị nghiêm cấm."}, {"letter": "B", "text": "Được phép vào ban đêm."}, {"letter": "C", "text": "Được phép nếu đi sát lề."}, {"letter": "D", "text": "Chỉ xe gắn máy trên 50 cm³ được vào. II. QUY TẮC GIAO THÔNG ĐƯỜNG BỘ HIỆN HÀNH"}], "answer": "D"}, {"num": 31, "question": "Người tham gia giao thông phải đi như thế nào là đúng quy tắc?", "options": [{"letter": "A", "text": "Đi ở làn giữa trong mọi trường hợp."}, {"letter": "B", "text": "Đi theo xe phía trước."}, {"letter": "C", "text": "Đi bên phải theo chiều đi của mình, đi đúng làn đường, phần đường quy định và chấp hành hệ thống báo hiệu đường bộ."}, {"letter": "D", "text": "Đi bên trái nếu đường bên phải bị tắc."}], "answer": "C"}, {"num": 32, "question": "Trên đường có nhiều làn đường cùng chiều được phân biệt bằng vạch kẻ, người lái xe phải chuyển làn như thế nào?", "options": [{"letter": "A", "text": "Chuyển làn bất cứ lúc nào thấy trống."}, {"letter": "B", "text": "Chỉ chuyển làn khi có Cảnh sát giao thông yêu cầu."}, {"letter": "C", "text": "Bật xi nhan là được chuyển ngay lập tức."}, {"letter": "D", "text": "Chỉ được chuyển làn đường ở những nơi cho phép; khi chuyển làn phải có tín hiệu báo trước và phải bảo đảm an toàn."}], "answer": "D"}, {"num": 33, "question": "Xe thô sơ phải đi ở làn đường nào khi di chuyển trên đường có phân làn?", "options": [{"letter": "A", "text": "Làn đường ở giữa."}, {"letter": "B", "text": "Làn đường bên trái ngoài cùng."}, {"letter": "C", "text": "Làn đường bên phải trong cùng."}, {"letter": "D", "text": "Đi trên vỉa hè."}], "answer": "C"}, {"num": 34, "question": "Khi gặp đèn tín hiệu giao thông màu vàng bật sáng ổn định, người lái xe phải làm gì?", "options": [{"letter": "A", "text": "Dừng xe ngay lập tức giữa ngã tư."}, {"letter": "B", "text": "Tăng tốc độ để vượt qua vạch."}, {"letter": "C", "text": "Chỉ cần giảm tốc độ và không cần dừng."}, {"letter": "D", "text": "Phải dừng lại trước vạch dừng; trường hợp đã đi quá vạch hoặc quá gần vạch nếu dừng lại thấy nguy hiểm thì được đi tiếp."}], "answer": "D"}, {"num": 35, "question": "Tín hiệu đèn vàng nhấp nháy có ý nghĩa gì?", "options": [{"letter": "A", "text": "Phải dừng lại tuyệt đối."}, {"letter": "B", "text": "Đèn bị hỏng, các xe tự do đi."}, {"letter": "C", "text": "Được đi nhưng phải giảm tốc độ, chú ý quan sát, nhường đường cho người đi bộ qua đường hoặc các phương tiện khác."}, {"letter": "D", "text": "Cấm tất cả các xe rẽ trái."}], "answer": "C"}, {"num": 36, "question": "Nếu hiệu lệnh của người điều khiển giao thông trái với hiệu lệnh của đèn tín hiệu hoặc biển báo, người tham gia giao thông phải chấp hành theo hiệu lệnh của ai?", "options": [{"letter": "A", "text": "Biển báo hiệu."}, {"letter": "B", "text": "Người điều khiển giao thông."}, {"letter": "C", "text": "Đèn tín hiệu."}, {"letter": "D", "text": "Xe ưu tiên phía sau."}], "answer": "B"}, {"num": 37, "question": "Người điều khiển giao thông giơ tay thẳng đứng có ý nghĩa gì?", "options": [{"letter": "A", "text": "Cho phép tất cả các xe rẽ phải."}, {"letter": "B", "text": "Xe ở phía bên phải được đi."}, {"letter": "C", "text": "Người tham gia giao thông ở các hướng đều phải dừng lại trước vạch dừng."}, {"letter": "D", "text": "Xe ở phía trước và sau được đi thẳng."}], "answer": "C"}, {"num": 38, "question": "Người điều khiển giao thông dang ngang hai tay có ý nghĩa gì?", "options": [{"letter": "A", "text": "Hướng phía trước được đi, các hướng khác dừng lại."}, {"letter": "B", "text": "Tất cả các hướng được đi."}, {"letter": "C", "text": "Người tham gia giao thông ở phía trước và phía sau phải dừng lại; ở phía bên phải và bên trái được đi."}, {"letter": "D", "text": "Tất cả các hướng phải dừng lại."}], "answer": "C"}, {"num": 39, "question": "Trước khi chuyển hướng, rẽ trái hoặc rẽ phải, người lái xe phải làm gì?", "options": [{"letter": "A", "text": "Bấm còi liên tục."}, {"letter": "B", "text": "Tăng tốc để rẽ nhanh."}, {"letter": "C", "text": "Chỉ cần chú ý gương chiếu hậu."}, {"letter": "D", "text": "Giảm tốc độ và có tín hiệu báo hướng rẽ trước một khoảng cách an toàn."}], "answer": "D"}, {"num": 40, "question": "Cấm quay đầu xe ở những vị trí nào dưới đây?", "options": [{"letter": "A", "text": "Phần đường dành cho người đi bộ qua đường."}, {"letter": "B", "text": "Đường hẹp, đoạn đường cong tầm nhìn bị che khuất."}, {"letter": "C", "text": "Trên cầu, đầu cầu, gầm cầu vượt, ngầm, trong hầm đường bộ, nơi đường bộ giao cắt đường sắt."}, {"letter": "D", "text": "Tất cả các phương án trên."}], "answer": "D"}, {"num": 41, "question": "Khi lùi xe, người lái xe phải thực hiện những biện pháp an toàn nào?", "options": [{"letter": "A", "text": "Lùi thật nhanh để không cản trở xe khác."}, {"letter": "B", "text": "Phải quan sát phía sau, có tín hiệu cần thiết và chỉ khi nào thấy không nguy hiểm mới được lùi."}, {"letter": "C", "text": "Bật đèn pha chiếu xa."}, {"letter": "D", "text": "Chỉ cần nhìn gương chiếu hậu bên trái."}], "answer": "B"}, {"num": 42, "question": "Hành vi lùi xe trên đường cao tốc bị pháp luật quy định như thế nào?", "options": [{"letter": "A", "text": "Được lùi nếu chạy quá lối ra."}, {"letter": "B", "text": "Bị nghiêm cấm hoàn toàn."}, {"letter": "C", "text": "Được lùi ở làn dừng khẩn cấp."}, {"letter": "D", "text": "Được lùi khi có người xi nhan phía sau."}], "answer": "B"}, {"num": 43, "question": "Khi muốn vượt xe khác, phương tiện phải vượt về phía bên nào?", "options": [{"letter": "A", "text": "Phía bên phải."}, {"letter": "B", "text": "Bên nào thoáng thì vượt."}, {"letter": "C", "text": "Phía bên trái, trừ các trường hợp đặc biệt được luật cho phép."}, {"letter": "D", "text": "Đi lên vỉa hè để vượt."}], "answer": "C"}, {"num": 44, "question": "Trường hợp nào dưới đây xe được phép vượt về phía bên phải?", "options": [{"letter": "A", "text": "Tất cả các trường hợp trên."}, {"letter": "B", "text": "Khi xe chuyên dùng đang làm việc trên đường mà không thể vượt bên trái được."}, {"letter": "C", "text": "Khi xe điện đang chạy giữa đường."}, {"letter": "D", "text": "Khi xe phía trước có tín hiệu rẽ trái hoặc đang rẽ trái."}], "answer": "A"}, {"num": 45, "question": "Trong đô thị và khu đông dân cư từ 22 giờ ngày hôm trước đến 05 giờ ngày hôm sau, xe xin vượt phải báo hiệu bằng cách nào?", "options": [{"letter": "A", "text": "Chỉ được báo hiệu bằng còi."}, {"letter": "B", "text": "Không cần báo hiệu."}, {"letter": "C", "text": "Phải báo hiệu bằng cả còi và đèn."}, {"letter": "D", "text": "Chỉ được báo hiệu bằng tín hiệu đèn."}], "answer": "D"}, {"num": 46, "question": "Khi hai xe tránh nhau trên đoạn đường hẹp, dốc, quy tắc nhường đường như thế nào là đúng?", "options": [{"letter": "A", "text": "Xe nào lớn hơn thì được đi trước."}, {"letter": "B", "text": "Xe nào nháy đèn trước thì được đi trước."}, {"letter": "C", "text": "Xe xuống dốc phải nhường đường cho xe đang lên dốc."}, {"letter": "D", "text": "Xe lên dốc phải nhường đường cho xe xuống dốc."}], "answer": "C"}, {"num": 47, "question": "Tại nơi đường giao nhau không có báo hiệu đi theo vòng xuyến, người điều khiển phương tiện phải nhường đường thế nào?", "options": [{"letter": "A", "text": "Nhường đường cho xe đi đến từ bên phải."}, {"letter": "B", "text": "Nhường đường cho xe đi đến từ bên trái."}, {"letter": "C", "text": "Xe tải được ưu tiên đi trước xe con."}, {"letter": "D", "text": "Xe nào xi nhan trước được đi trước."}], "answer": "A"}, {"num": 48, "question": "Tại nơi đường giao nhau có báo hiệu đi theo vòng xuyến, quy tắc nhường đường là gì?", "options": [{"letter": "A", "text": "Phải nhường đường cho xe đi đến từ bên phải."}, {"letter": "B", "text": "Phải nhường đường cho xe đi bên trái, tức xe đã vào trong vòng xuyến."}, {"letter": "C", "text": "Xe nào to hơn được đi trước."}, {"letter": "D", "text": "Các xe đi cùng lúc."}], "answer": "B"}, {"num": 49, "question": "Khi từ đường ngõ, đường nhánh, đường không ưu tiên ra đường chính, đường ưu tiên, tài xế phải xử lý thế nào?", "options": [{"letter": "A", "text": "Bấm còi liên tục để các xe trên đường chính nhường đường."}, {"letter": "B", "text": "Tăng tốc để nhập làn nhanh chóng."}, {"letter": "C", "text": "Nhường đường cho xe đi trên đường ưu tiên hoặc đường chính từ bất kỳ hướng nào tới."}, {"letter": "D", "text": "Chỉ nhường xe đi từ bên phải."}], "answer": "C"}, {"num": 50, "question": "Thứ tự quyền ưu tiên của các xe đi làm nhiệm vụ khẩn cấp từ cao xuống thấp được quy định như thế nào?", "options": [{"letter": "A", "text": "Tất cả các xe có quyền ngang nhau."}, {"letter": "B", "text": "Xe cứu thương; xe chữa cháy; xe công an; xe quân sự."}, {"letter": "C", "text": "Xe chữa cháy; xe quân sự, xe công an, xe kiểm sát đi làm nhiệm vụ khẩn cấp và đoàn xe có xe Cảnh sát giao thông dẫn đường; xe cứu thương; xe hộ đê, xe đi làm nhiệm vụ khắc phục sự cố, thiên tai, dịch bệnh; đoàn xe tang."}, {"letter": "D", "text": "Xe công an; xe quân sự; xe cứu thương; xe chữa cháy."}], "answer": "C"}, {"num": 51, "question": "Các xe ưu tiên khi đi làm nhiệm vụ khẩn cấp phải có tín hiệu gì theo quy định?", "options": [{"letter": "A", "text": "Phải có còi, cờ, đèn tín hiệu theo quy định pháp luật."}, {"letter": "B", "text": "Chỉ cần bật đèn pha."}, {"letter": "C", "text": "Dán chữ \"ƯU TIÊN\" trước kính xe."}, {"letter": "D", "text": "Chỉ cần rú ga thật to."}], "answer": "A"}, {"num": 52, "question": "Xe ưu tiên khi đi làm nhiệm vụ khẩn cấp có bị hạn chế tốc độ không?", "options": [{"letter": "A", "text": "Chỉ được chạy nhanh khi đường vắng."}, {"letter": "B", "text": "Có, phải tuân thủ tốc độ tối đa của đoạn đường."}, {"letter": "C", "text": "Chỉ được chạy quá tốc độ 20 km/h."}, {"letter": "D", "text": "Không bị hạn chế tốc độ; được phép đi vào đường ngược chiều, qua đèn đỏ nhưng phải bảo đảm an toàn."}], "answer": "D"}, {"num": 53, "question": "Khái niệm \"dừng xe\" được hiểu như thế nào là đúng?", "options": [{"letter": "A", "text": "Là trạng thái đứng yên tạm thời của phương tiện giao thông trong khoảng thời gian cần thiết để cho người lên, xuống, xếp dỡ hàng hóa hoặc thực hiện công việc khác."}, {"letter": "B", "text": "Là việc tắt máy xe nghỉ ngơi."}, {"letter": "C", "text": "Là trạng thái xe bị hỏng máy."}, {"letter": "D", "text": "Là trạng thái đứng yên của phương tiện không giới hạn thời gian."}], "answer": "A"}, {"num": 54, "question": "Khái niệm \"đỗ xe\" được hiểu như thế nào?", "options": [{"letter": "A", "text": "Là trạng thái đứng yên của phương tiện giao thông không giới hạn thời gian."}, {"letter": "B", "text": "Là trạng thái đứng yên tạm thời của xe."}, {"letter": "C", "text": "Là việc gửi xe vào bãi đỗ."}, {"letter": "D", "text": "Là xe dừng lại chờ đèn đỏ."}], "answer": "A"}, {"num": 55, "question": "Khi dừng xe, đỗ xe trên đường phố, bánh xe gần nhất không được cách lề đường, hè phố quá bao nhiêu mét?", "options": [{"letter": "A", "text": "0,20 mét."}, {"letter": "B", "text": "0,25 mét."}, {"letter": "C", "text": "0,50 mét."}, {"letter": "D", "text": "0,30 mét."}], "answer": "B"}, {"num": 56, "question": "Khi dừng, đỗ xe trên đường phố hẹp, không được đỗ xe cách xe ô tô đang đỗ ở phía bên kia đường dưới bao nhiêu mét?", "options": [{"letter": "A", "text": "15 mét."}, {"letter": "B", "text": "05 mét."}, {"letter": "C", "text": "10 mét."}, {"letter": "D", "text": "20 mét."}], "answer": "D"}, {"num": 57, "question": "Quy định mới về việc chở trẻ em dưới 10 tuổi và chiều cao dưới 1,35 m trên xe ô tô con là gì?", "options": [{"letter": "A", "text": "Không được cho trẻ em ngồi cùng hàng ghế với người lái xe, trừ khi xe chỉ có một hàng ghế, và phải sử dụng thiết bị an toàn phù hợp."}, {"letter": "B", "text": "Được người lớn bế ngồi ghế trước."}, {"letter": "C", "text": "Được ngồi ghế trước nếu có thắt dây an toàn."}, {"letter": "D", "text": "Ngồi ở vị trí nào cũng được miễn là đóng chặt cửa."}], "answer": "A"}, {"num": 58, "question": "Người điều khiển xe mô tô hai bánh, xe gắn máy được phép chở tối đa mấy người ngồi sau?", "options": [{"letter": "A", "text": "03 người nếu xe phân khối lớn."}, {"letter": "B", "text": "02 người trong mọi trường hợp."}, {"letter": "C", "text": "Không được chở ai."}, {"letter": "D", "text": "01 người, trừ một số trường hợp ngoại lệ được chở 02 người."}], "answer": "D"}, {"num": 59, "question": "Trường hợp nào dưới đây xe mô tô hai bánh được phép chở tối đa 02 người ngồi sau?", "options": [{"letter": "A", "text": "Tất cả các trường hợp trên."}, {"letter": "B", "text": "Chở người bệnh đi cấp cứu; áp giải người có hành vi vi phạm pháp luật."}, {"letter": "C", "text": "Chở trẻ em dưới 12 tuổi."}, {"letter": "D", "text": "Chở người già yếu hoặc người khuyết tật."}], "answer": "A"}, {"num": 60, "question": "Người ngồi trên xe mô tô, xe gắn máy có được thực hiện hành vi bám, kéo hoặc đẩy phương tiện khác không?", "options": [{"letter": "A", "text": "Được phép kéo xe đạp."}, {"letter": "B", "text": "Tuyệt đối không được phép."}, {"letter": "C", "text": "Được phép vào ban đêm khi đường vắng."}, {"letter": "D", "text": "Được phép nếu xe khác bị hỏng."}], "answer": "B"}, {"num": 61, "question": "Người điều khiển xe đạp có được phép buông cả hai tay hoặc đi xe dàn hàng ngang từ 03 xe trở lên không?", "options": [{"letter": "A", "text": "Được phép nếu là học sinh."}, {"letter": "B", "text": "Được phép đi dàn hàng ngang trên đường làng."}, {"letter": "C", "text": "Được buông hai tay khi đường vắng."}, {"letter": "D", "text": "Bị nghiêm cấm."}], "answer": "D"}, {"num": 62, "question": "Người đi bộ phải đi như thế nào là đúng quy tắc giao thông?", "options": [{"letter": "A", "text": "Đi bên nào cũng được miễn là chú ý xe cộ."}, {"letter": "B", "text": "Đi dưới lòng đường sát dải phân cách."}, {"letter": "C", "text": "Phải đi trên hè phố, lề đường; trường hợp đường không có hè phố, lề đường thì người đi bộ phải đi sát mép đường."}, {"letter": "D", "text": "Đi chéo qua ngã tư để qua đường nhanh nhất."}], "answer": "C"}, {"num": 63, "question": "Khi xe gặp sự cố kỹ thuật trên đường cao tốc, người lái xe phải thực hiện ngay thao tác nào đầu tiên?", "options": [{"letter": "A", "text": "Tiếp tục cố gắng cho xe chạy đến lối ra."}, {"letter": "B", "text": "Gọi điện cho cứu hộ rồi ngồi yên trong xe."}, {"letter": "C", "text": "Xuống xe vẫy gọi xe khác giúp đỡ."}, {"letter": "D", "text": "Bật đèn cảnh báo nguy hiểm."}], "answer": "D"}, {"num": 64, "question": "Trên đường cao tốc, việc đặt biển hoặc thiết bị cảnh báo nguy hiểm phía sau xe bị sự cố tối thiểu là bao nhiêu mét?", "options": [{"letter": "A", "text": "100 mét."}, {"letter": "B", "text": "150 mét."}, {"letter": "C", "text": "50 mét."}, {"letter": "D", "text": "200 mét."}], "answer": "B"}, {"num": 65, "question": "Làn đường khẩn cấp trên đường cao tốc dùng để làm gì?", "options": [{"letter": "A", "text": "Nơi nghỉ ngơi, ngắm cảnh của tài xế."}, {"letter": "B", "text": "Để xe ô tô con chạy khi đường chính bị ùn tắc."}, {"letter": "C", "text": "Dành cho xe tải chạy chậm."}, {"letter": "D", "text": "Dành riêng cho xe bị sự cố dừng đỗ hoặc cho các xe ưu tiên đi làm nhiệm vụ khẩn cấp."}], "answer": "D"}, {"num": 66, "question": "Người lái xe phải giữ một khoảng cách an toàn với xe chạy liền trước như thế nào?", "options": [{"letter": "A", "text": "Càng đi sát càng tốt để tránh bị xe khác chen vào."}, {"letter": "B", "text": "Luôn giữ cố định là 05 mét."}, {"letter": "C", "text": "Không cần giữ khoảng cách nếu chạy chậm."}, {"letter": "D", "text": "Phải tuân thủ khoảng cách an toàn tối thiểu phù hợp với tốc độ, mật độ giao thông và điều kiện thời tiết."}], "answer": "D"}, {"num": 67, "question": "Trong hầm đường bộ, người điều khiển phương tiện có được phép quay đầu xe hay lùi xe không?", "options": [{"letter": "A", "text": "Bị nghiêm cấm hoàn toàn."}, {"letter": "B", "text": "Được quay đầu nếu hầm rộng."}, {"letter": "C", "text": "Được lùi xe khi đi quá lối rẽ trong hầm."}, {"letter": "D", "text": "Được quay đầu xe vào ban đêm."}], "answer": "A"}, {"num": 68, "question": "Phương tiện cơ giới đi trong hầm đường bộ bắt buộc phải thực hiện quy định nào về chiếu sáng?", "options": [{"letter": "A", "text": "Chỉ cần bật đèn định vị."}, {"letter": "B", "text": "Không cần bật đèn nếu hầm sáng."}, {"letter": "C", "text": "Bật đèn pha chiếu xa để nhìn rõ hơn."}, {"letter": "D", "text": "Phải bật đèn chiếu sáng phía trước, đèn gần/đèn cốt, ngay cả khi hầm đường bộ đã có ánh sáng điện."}], "answer": "D"}, {"num": 69, "question": "Xe vận chuyển hàng hóa nguy hiểm khi lưu thông trên đường phải tuân thủ điều kiện gì?", "options": [{"letter": "A", "text": "Phải có giấy phép do cơ quan nhà nước có thẩm quyền cấp và có ký hiệu, biểu trưng cảnh báo trên xe."}, {"letter": "B", "text": "Chạy càng nhanh càng tốt."}, {"letter": "C", "text": "Không cần điều kiện gì đặc biệt."}, {"letter": "D", "text": "Chỉ được chạy vào ngày lễ."}], "answer": "A"}, {"num": 70, "question": "Tại đoạn đường có vạch kẻ đường đơn màu vàng, nét liền, người lái xe được thực hiện hành vi nào?", "options": [{"letter": "A", "text": "Được quay đầu xe qua vạch."}, {"letter": "B", "text": "Được đè lên vạch để vượt xe."}, {"letter": "C", "text": "Không được đè lên vạch, không được chuyển làn hoặc lấn sang làn ngược chiều."}, {"letter": "D", "text": "Được dừng, đỗ xe trên vạch. III. THIẾT BỊ, AN TOÀN KỸ THUẬT VÀ TRÁCH NHIỆM"}], "answer": "D"}, {"num": 71, "question": "Khi bán, tặng hoặc điều chuyển quyền sở hữu xe, chủ xe phải làm gì với biển số xe đối với biển số định danh?", "options": [{"letter": "A", "text": "Vứt bỏ biển số cũ đi."}, {"letter": "B", "text": "Bán luôn biển số cùng với xe."}, {"letter": "C", "text": "Phải giữ lại chứng nhận đăng ký và biển số xe, nộp lại cho cơ quan đăng ký xe để làm thủ tục thu hồi."}, {"letter": "D", "text": "Cho người mua mượn biển số trong 01 năm."}], "answer": "C"}, {"num": 72, "question": "Trong thời hạn bao nhiêu ngày kể từ ngày làm giấy tờ chuyển quyền sở hữu xe, chủ xe phải làm thủ tục thu hồi đăng ký, biển số xe?", "options": [{"letter": "A", "text": "10 ngày."}, {"letter": "B", "text": "15 ngày."}, {"letter": "C", "text": "30 ngày."}, {"letter": "D", "text": "60 ngày."}], "answer": "C"}, {"num": 73, "question": "Xe cơ giới tham gia giao thông đường bộ bắt buộc phải có loại bảo hiểm nào dưới đây?", "options": [{"letter": "A", "text": "Bảo hiểm người ngồi trên xe."}, {"letter": "B", "text": "Bảo hiểm trách nhiệm dân sự của chủ xe cơ giới."}, {"letter": "C", "text": "Bảo hiểm thân vỏ xe."}, {"letter": "D", "text": "Bảo hiểm hàng hóa."}], "answer": "B"}, {"num": 74, "question": "Theo quy định mới, việc kiểm định khí thải đối với xe mô tô, xe gắn máy được thực hiện như thế nào?", "options": [{"letter": "A", "text": "Chỉ áp dụng cho xe tự chế."}, {"letter": "B", "text": "Hoàn toàn tự nguyện."}, {"letter": "C", "text": "Bắt buộc thực hiện theo lộ trình và quy định cụ thể của Chính phủ."}, {"letter": "D", "text": "Chỉ áp dụng đối với xe nhập khẩu."}], "answer": "C"}, {"num": 75, "question": "Thiết bị giám sát hành trình và camera giám sát bắt buộc phải lắp đặt trên loại phương tiện nào?", "options": [{"letter": "A", "text": "Xe ô tô kinh doanh vận tải như xe khách, xe tải kinh doanh."}, {"letter": "B", "text": "Tất cả các xe ô tô cá nhân."}, {"letter": "C", "text": "Xe máy chuyên dùng."}, {"letter": "D", "text": "Xe mô tô phân khối lớn."}], "answer": "A"}, {"num": 76, "question": "Khi xảy ra tai nạn giao thông, người điều khiển xe có liên quan trực tiếp phải có trách nhiệm gì đầu tiên?", "options": [{"letter": "A", "text": "Gọi điện cho người nhà đến giải quyết."}, {"letter": "B", "text": "Dừng xe ngay lập tức, giữ nguyên hiện trường, cấp cứu người bị nạn."}, {"letter": "C", "text": "Rời khỏi hiện trường ngay lập tức."}, {"letter": "D", "text": "Đổ lỗi cho phương tiện khác."}], "answer": "B"}, {"num": 77, "question": "Người có mặt tại nơi xảy ra vụ tai nạn giao thông có trách nhiệm nào sau đây?", "options": [{"letter": "A", "text": "Báo tin ngay cho cơ quan Công an, Y tế hoặc Ủy ban nhân dân nơi gần nhất."}, {"letter": "B", "text": "Tất cả các trách nhiệm trên."}, {"letter": "C", "text": "Cung cấp thông tin xác thực về vụ tai nạn theo yêu cầu của cơ quan có thẩm quyền."}, {"letter": "D", "text": "Bảo vệ hiện trường, giúp đỡ, cứu chữa kịp thời người bị nạn."}], "answer": "B"}, {"num": 78, "question": "Hành vi lợi dụng vụ tai nạn giao thông để hành hung, đe dọa, lăng mạ hoặc hôi của, chiếm đoạt tài sản, bị pháp luật xử lý thế nào?", "options": [{"letter": "A", "text": "Không có quy định xử lý."}, {"letter": "B", "text": "Được xem là tranh chấp dân sự."}, {"letter": "C", "text": "Nghiêm cấm và bị xử lý nghiêm khắc theo quy định hành chính hoặc hình sự."}, {"letter": "D", "text": "Chỉ bị nhắc nhở."}], "answer": "C"}, {"num": 79, "question": "Đèn lùi gắn phía sau xe ô tô bắt buộc phải có ánh sáng màu gì?", "options": [{"letter": "A", "text": "Màu trắng."}, {"letter": "B", "text": "Màu xanh."}, {"letter": "C", "text": "Màu đỏ."}, {"letter": "D", "text": "Màu vàng."}], "answer": "A"}, {"num": 80, "question": "Đèn phanh, đèn báo hãm, của xe ô tô, xe mô tô bắt buộc phải phát ra ánh sáng màu gì?", "options": [{"letter": "A", "text": "Màu vàng."}, {"letter": "B", "text": "Màu trắng."}, {"letter": "C", "text": "Màu đỏ."}, {"letter": "D", "text": "Màu xanh lục."}], "answer": "C"}, {"num": 81, "question": "Biển số xe của ô tô, xe máy kinh doanh vận tải như xe công nghệ, xe taxi, xe tải kinh doanh có đặc điểm gì về màu sắc?", "options": [{"letter": "A", "text": "Nền màu xanh, chữ màu trắng."}, {"letter": "B", "text": "Nền màu trắng, chữ màu đen."}, {"letter": "C", "text": "Nền màu đỏ, chữ màu trắng."}, {"letter": "D", "text": "Nền màu vàng, chữ và số màu đen."}], "answer": "D"}, {"num": 82, "question": "Biển số xe của các cơ quan Đảng, Nhà nước, Văn phòng Quốc hội, Công an có đặc điểm gì?", "options": [{"letter": "A", "text": "Nền màu xanh, chữ màu vàng."}, {"letter": "B", "text": "Nền màu xanh, chữ và số màu trắng."}, {"letter": "C", "text": "Nền màu vàng, chữ màu đỏ."}, {"letter": "D", "text": "Nền màu trắng, chữ màu đen."}], "answer": "B"}, {"num": 83, "question": "Chủ phương tiện có được tự ý thay đổi màu sơn, nhãn hiệu hoặc kết cấu hệ thống truyền động của xe không?", "options": [{"letter": "A", "text": "Được tự ý thay đổi theo sở thích."}, {"letter": "B", "text": "Không được phép tự ý thay đổi khi chưa được cơ quan đăng ký xe chấp thuận."}, {"letter": "C", "text": "Chỉ cần báo cáo sau khi đã thay đổi xong."}, {"letter": "D", "text": "Được thay đổi màu sơn, cấm thay đổi máy."}], "answer": "B"}, {"num": 84, "question": "Người lái xe kinh doanh vận tải hành khách không được thực hiện hành vi nào dưới đây?", "options": [{"letter": "A", "text": "Đón, trả khách đúng nơi quy định."}, {"letter": "B", "text": "Chở quá số người quy định hoặc chở hàng hóa cồng kềnh trong khoang chở khách."}, {"letter": "C", "text": "Giúp đỡ hành khách là người già, trẻ em."}, {"letter": "D", "text": "Thu tiền vé theo đúng giá niêm yết."}], "answer": "B"}, {"num": 85, "question": "Việc lắp đặt còi hơi, còi phát ra âm thanh vượt quá âm lượng quy định trên xe ô tô con bị xử lý thế nào?", "options": [{"letter": "A", "text": "Bị nghiêm cấm và không được chấp nhận khi kiểm định an toàn kỹ thuật."}, {"letter": "B", "text": "Chỉ cấm ở đường nông thôn."}, {"letter": "C", "text": "Được phép lắp để cảnh báo từ xa."}, {"letter": "D", "text": "Được dùng ban ngày, cấm ban đêm."}], "answer": "A"}, {"num": 86, "question": "Người nước ngoài điều khiển phương tiện giao thông tại Việt Nam cần có điều kiện gì về giấy phép lái xe?", "options": [{"letter": "A", "text": "Chỉ cần giấy phép lái xe của quốc gia họ là đủ."}, {"letter": "B", "text": "Chỉ được lái xe điện du lịch."}, {"letter": "C", "text": "Phải có giấy phép lái xe quốc tế phù hợp được Việt Nam công nhận hoặc giấy phép lái xe do Việt Nam cấp."}, {"letter": "D", "text": "Không cần bằng lái nếu có hộ chiếu."}], "answer": "C"}, {"num": 87, "question": "Trách nhiệm tuyên truyền, giáo dục pháp luật về trật tự, an toàn giao thông đường bộ thuộc về ai?", "options": [{"letter": "A", "text": "Chỉ riêng nhà trường."}, {"letter": "B", "text": "Chỉ riêng ngành Công an."}, {"letter": "C", "text": "Là trách nhiệm của gia đình, nhà trường, cơ quan, tổ chức và toàn xã hội."}, {"letter": "D", "text": "Chỉ riêng ngành Giao thông vận tải."}], "answer": "C"}, {"num": 88, "question": "Xe máy điện khi tham gia giao thông có bắt buộc phải đăng ký và gắn biển số xe không?", "options": [{"letter": "A", "text": "Chỉ bắt buộc đối với người trên 18 tuổi."}, {"letter": "B", "text": "Bắt buộc phải đăng ký và gắn biển số theo quy định."}, {"letter": "C", "text": "Chỉ cần đăng ký, không cần gắn biển số."}, {"letter": "D", "text": "Không cần đăng ký vì là xe chạy điện."}], "answer": "B"}, {"num": 89, "question": "Giao xe cho người không có giấy phép lái xe hoặc người đang có nồng độ cồn điều khiển xe tham gia giao thông là hành vi như thế nào?", "options": [{"letter": "A", "text": "Bị nghiêm cấm hoàn toàn."}, {"letter": "B", "text": "Chủ xe không phải chịu trách nhiệm."}, {"letter": "C", "text": "Được phép nếu đi quãng đường ngắn."}, {"letter": "D", "text": "Chỉ bị phạt nếu xảy ra tai nạn."}], "answer": "A"}, {"num": 90, "question": "Khi chở hàng vượt quá chiều cao hoặc chiều dài thiết kế của thùng xe ô tô tải, tài xế phải làm gì?", "options": [{"letter": "A", "text": "Chỉ chạy vào ban đêm."}, {"letter": "B", "text": "Dùng bạt che kín lại để tránh bị phát hiện."}, {"letter": "C", "text": "Cứ chạy bình thường nếu chằng buộc chắc chắn."}, {"letter": "D", "text": "Phải xin giấy phép lưu hành đặc biệt của cơ quan thẩm quyền và có báo hiệu an toàn. IV. HỆ THỐNG BÁO HIỆU ĐƯỜNG BỘ VÀ TÌNH HUỐNG"}], "answer": "D"}, {"num": 91, "question": "Hệ thống báo hiệu đường bộ theo luật hiện hành bao gồm những gì?", "options": [{"letter": "A", "text": "Cảnh sát giao thông và hệ thống camera phạt nguội."}, {"letter": "B", "text": "Hiệu lệnh của người điều khiển giao thông; tín hiệu đèn; biển báo hiệu; vạch kẻ đường; cọc tiêu, rào chắn, tường bảo vệ."}, {"letter": "C", "text": "Chỉ gồm đèn giao thông."}, {"letter": "D", "text": "Biển báo hiệu và vạch kẻ đường."}], "answer": "B"}, {"num": 92, "question": "Thứ tự ưu tiên chấp hành hệ thống báo hiệu đường bộ khi tham gia giao thông là gì?", "options": [{"letter": "A", "text": "Người điều khiển giao thông; tín hiệu đèn; biển báo hiệu; vạch kẻ đường."}, {"letter": "B", "text": "Xe đi trước tuân thủ thế nào thì đi theo thế đó."}, {"letter": "C", "text": "Đèn tín hiệu; biển báo hiệu; vạch kẻ đường."}, {"letter": "D", "text": "Biển báo; đèn tín hiệu; vạch kẻ đường; người điều khiển giao thông."}], "answer": "A"}, {"num": 93, "question": "Biển báo hiệu hình tròn, viền đỏ, nền màu trắng, trên nền có hình vẽ hoặc chữ số, chữ viết màu đen thuộc nhóm biển báo nào?", "options": [{"letter": "A", "text": "Biển báo nguy hiểm."}, {"letter": "B", "text": "Biển chỉ dẫn."}, {"letter": "C", "text": "Biển hiệu lệnh."}, {"letter": "D", "text": "Biển báo cấm."}], "answer": "D"}, {"num": 94, "question": "Biển báo hiệu hình tam giác đều, viền đỏ, nền màu vàng, trên nền có hình vẽ màu đen là biển báo gì?", "options": [{"letter": "A", "text": "Biển chỉ dẫn."}, {"letter": "B", "text": "Biển báo cấm."}, {"letter": "C", "text": "Biển hiệu lệnh."}, {"letter": "D", "text": "Biển báo nguy hiểm và cảnh báo."}], "answer": "D"}, {"num": 95, "question": "Biển báo hiệu hình tròn nền màu xanh lam, có hình vẽ màu trắng thuộc nhóm biển báo nào?", "options": [{"letter": "A", "text": "Biển phụ."}, {"letter": "B", "text": "Biển báo cấm."}, {"letter": "C", "text": "Biển hiệu lệnh phải thi hành."}, {"letter": "D", "text": "Biển chỉ dẫn."}], "answer": "C"}, {"num": 96, "question": "Biển báo hình chữ nhật hoặc hình vuông, nền màu xanh lam, hình vẽ màu trắng là loại biển báo nào?", "options": [{"letter": "A", "text": "Biển báo cấm."}, {"letter": "B", "text": "Biển chỉ dẫn."}, {"letter": "C", "text": "Biển phụ."}, {"letter": "D", "text": "Biển hiệu lệnh."}], "answer": "B"}, {"num": 97, "question": "Vạch kẻ đường đứt nét màu trắng phân chia các làn đường cùng chiều có ý nghĩa gì?", "options": [{"letter": "A", "text": "Chỉ dành cho xe ưu tiên."}, {"letter": "B", "text": "Biểu thị khu vực cấm dừng xe."}, {"letter": "C", "text": "Cấm các xe đè lên vạch."}, {"letter": "D", "text": "Cho phép các xe được chuyển làn, đè lên vạch khi bảo đảm an toàn."}], "answer": "D"}, {"num": 98, "question": "Vạch kẻ đường đôi nét liền màu vàng phân chia hai chiều xe chạy có ý nghĩa gì?", "options": [{"letter": "A", "text": "Xe được phép đè vạch khi vượt."}, {"letter": "B", "text": "Cấm các xe đè lên vạch, lấn làn, không được quay đầu xe qua vạch."}, {"letter": "C", "text": "Cho phép đè vạch vào ban đêm."}, {"letter": "D", "text": "Vạch chỉ dẫn khu vực đỗ xe."}], "answer": "B"}, {"num": 99, "question": "Tại ngã tư có vạch kẻ hình mắt võng màu vàng nét liền đan xen, người lái xe phải lưu ý điều gì?", "options": [{"letter": "A", "text": "Không được dừng phương tiện trong phạm vi vạch kẻ này để tránh gây ùn tắc giao thông."}, {"letter": "B", "text": "Chỉ xe máy được đi vào."}, {"letter": "C", "text": "Được đỗ xe thoải mái tại đây."}, {"letter": "D", "text": "Làn đường dành riêng cho xe buýt."}], "answer": "A"}, {"num": 100, "question": "Khi muốn quay đầu xe tại ngã tư, tài xế phải cho xe quay đầu ở vị trí nào?", "options": [{"letter": "A", "text": "Quay đầu ngay giữa ngã tư bất chấp luồng xe."}, {"letter": "B", "text": "Đè lên vạch kẻ đi bộ để quay đầu cho nhanh."}, {"letter": "C", "text": "Ở nơi đường giao nhau hoặc nơi có biển báo cho phép quay đầu xe; tuyệt đối không quay đầu trên vạch đi bộ."}, {"letter": "D", "text": "Quay đầu ở sát vỉa hè bên trái. V. KIẾN THỨC VỀ XỬ PHẠT VI PHẠM HÀNH CHÍNH"}], "answer": "D"}, {"num": 101, "question": "Người điều khiển, người ngồi trên xe mô tô, xe gắn máy không đội mũ bảo hiểm hoặc cài quai không đúng quy cách bị phạt tiền bao nhiêu?", "options": [{"letter": "A", "text": "Từ 400.000 đến 600.000 đồng."}, {"letter": "B", "text": "Từ 100.000 đến 200.000 đồng."}, {"letter": "C", "text": "Từ 1.000.000 đến 2.000.000 đồng."}, {"letter": "D", "text": "Từ 200.000 đến 300.000 đồng."}], "answer": "A"}, {"num": 102, "question": "Người điều khiển xe mô tô, xe gắn máy trên đường mà trong máu hoặc hơi thở có nồng độ cồn ở mức thấp nhất, chưa vượt quá 50 mg/100 ml máu hoặc chưa quá 0,25 mg/l khí thở, bị phạt tiền bao nhiêu?", "options": [{"letter": "A", "text": "Chỉ bị nhắc nhở."}, {"letter": "B", "text": "Từ 2.000.000 đến 3.000.000 đồng."}, {"letter": "C", "text": "Từ 500.000 đến 1.000.000 đồng."}, {"letter": "D", "text": "Từ 6.000.000 đến 8.000.000 đồng."}], "answer": "B"}, {"num": 103, "question": "Mức phạt tiền cao nhất đối với người điều khiển xe ô tô vi phạm nồng độ cồn kịch khung, vượt quá 80 mg/100 ml máu hoặc quá 0,4 mg/l khí thở, là bao nhiêu?", "options": [{"letter": "A", "text": "Từ 40.000.000 đến 60.000.000 đồng."}, {"letter": "B", "text": "Từ 20.000.000 đến 30.000.000 đồng."}, {"letter": "C", "text": "Từ 30.000.000 đến 40.000.000 đồng."}, {"letter": "D", "text": "Từ 10.000.000 đến 20.000.000 đồng."}], "answer": "C"}, {"num": 104, "question": "Hành vi dùng tay sử dụng điện thoại di động khi đang điều khiển xe ô tô chạy trên đường bị phạt tiền bao nhiêu?", "options": [{"letter": "A", "text": "Từ 500.000 đến 1.000.000 đồng."}, {"letter": "B", "text": "Từ 4.000.000 đến 6.000.000 đồng."}, {"letter": "C", "text": "Từ 2.000.000 đến 3.000.000 đồng."}, {"letter": "D", "text": "Từ 1.000.000 đến 2.000.000 đồng."}], "answer": "B"}, {"num": 105, "question": "Người đang điều khiển xe mô tô, xe gắn máy sử dụng điện thoại di động bị phạt tiền bao nhiêu?", "options": [{"letter": "A", "text": "Từ 1.000.000 đến 2.000.000 đồng."}, {"letter": "B", "text": "Từ 2.000.000 đến 3.000.000 đồng."}, {"letter": "C", "text": "Từ 200.000 đến 400.000 đồng."}, {"letter": "D", "text": "Từ 800.000 đến 1.000.000 đồng."}], "answer": "D"}, {"num": 106, "question": "Điều khiển xe mô tô, xe gắn máy chạy dàn hàng ngang từ 03 xe trở lên bị phạt tiền bao nhiêu?", "options": [{"letter": "A", "text": "Từ 400.000 đến 600.000 đồng."}, {"letter": "B", "text": "Từ 300.000 đến 400.000 đồng."}, {"letter": "C", "text": "Từ 600.000 đến 800.000 đồng."}, {"letter": "D", "text": "Từ 100.000 đến 200.000 đồng."}], "answer": "C"}, {"num": 107, "question": "Người điều khiển xe ô tô không chấp hành hiệu lệnh của đèn tín hiệu giao thông, gồm vượt đèn đỏ hoặc đèn vàng không đúng quy định, bị phạt tiền bao nhiêu?", "options": [{"letter": "A", "text": "Từ 6.000.000 đến 8.000.000 đồng."}, {"letter": "B", "text": "Từ 4.000.000 đến 6.000.000 đồng."}, {"letter": "C", "text": "Từ 18.000.000 đến 20.000.000 đồng."}, {"letter": "D", "text": "Từ 10.000.000 đến 12.000.000 đồng."}], "answer": "C"}, {"num": 108, "question": "Người điều khiển xe mô tô, xe gắn máy không chấp hành hiệu lệnh của đèn tín hiệu giao thông, gồm vượt đèn đỏ hoặc đèn vàng không đúng quy định, bị phạt tiền bao nhiêu?", "options": [{"letter": "A", "text": "Từ 1.000.000 đến 2.000.000 đồng."}, {"letter": "B", "text": "Từ 4.000.000 đến 6.000.000 đồng."}, {"letter": "C", "text": "Từ 800.000 đến 1.000.000 đồng."}, {"letter": "D", "text": "Từ 2.000.000 đến 3.000.000 đồng."}], "answer": "B"}, {"num": 109, "question": "Người điều khiển xe ô tô đi ngược chiều của đường một chiều hoặc đi ngược chiều trên đường có biển \"Cấm đi ngược chiều\" bị phạt tiền bao nhiêu?", "options": [{"letter": "A", "text": "Từ 18.000.000 đến 20.000.000 đồng."}, {"letter": "B", "text": "Từ 10.000.000 đến 12.000.000 đồng."}, {"letter": "C", "text": "Từ 16.000.000 đến 18.000.000 đồng."}, {"letter": "D", "text": "Từ 4.000.000 đến 6.000.000 đồng."}], "answer": "A"}, {"num": 110, "question": "Hành vi đón, trả khách trên đường cao tốc của người điều khiển xe ô tô chở hành khách bị phạt tiền bao nhiêu?", "options": [{"letter": "A", "text": "Từ 5.000.000 đến 7.000.000 đồng."}, {"letter": "B", "text": "Từ 1.000.000 đến 2.000.000 đồng."}, {"letter": "C", "text": "Từ 10.000.000 đến 12.000.000 đồng."}, {"letter": "D", "text": "Từ 3.000.000 đến 5.000.000 đồng."}], "answer": "C"}, {"num": 111, "question": "Người đi bộ đi vào đường cao tốc trái quy định bị phạt tiền bao nhiêu?", "options": [{"letter": "A", "text": "Từ 100.000 đến 200.000 đồng."}, {"letter": "B", "text": "Từ 300.000 đến 400.000 đồng."}, {"letter": "C", "text": "Từ 50.000 đến 100.000 đồng."}, {"letter": "D", "text": "Từ 400.000 đến 600.000 đồng."}], "answer": "D"}, {"num": 112, "question": "Không nhường đường cho xe được quyền ưu tiên đang phát tín hiệu ưu tiên đi làm nhiệm vụ đối với người điều khiển xe ô tô bị phạt tiền bao nhiêu?", "options": [{"letter": "A", "text": "Từ 10.000.000 đến 12.000.000 đồng."}, {"letter": "B", "text": "Từ 6.000.000 đến 8.000.000 đồng."}, {"letter": "C", "text": "Từ 1.000.000 đến 2.000.000 đồng."}, {"letter": "D", "text": "Từ 3.000.000 đến 5.000.000 đồng."}], "answer": "B"}, {"num": 113, "question": "Chủ xe máy là cá nhân tự ý thay đổi màu sơn của xe không đúng với chứng nhận đăng ký xe bị phạt tiền bao nhiêu?", "options": [{"letter": "A", "text": "Từ 100.000 đến 200.000 đồng."}, {"letter": "B", "text": "Từ 400.000 đến 800.000 đồng."}, {"letter": "C", "text": "Từ 200.000 đến 300.000 đồng."}, {"letter": "D", "text": "Từ 50.000 đến 100.000 đồng."}], "answer": "C"}, {"num": 114, "question": "Người điều khiển xe ô tô chạy quá tốc độ quy định trên 20 km/h đến 35 km/h bị phạt tiền bao nhiêu?", "options": [{"letter": "A", "text": "Từ 800.000 đến 1.000.000 đồng."}, {"letter": "B", "text": "Từ 4.000.000 đến 6.000.000 đồng."}, {"letter": "C", "text": "Từ 10.000.000 đến 12.000.000 đồng."}, {"letter": "D", "text": "Từ 6.000.000 đến 8.000.000 đồng."}], "answer": "D"}, {"num": 115, "question": "Lỗi không có Giấy chứng nhận bảo hiểm trách nhiệm dân sự bắt buộc của chủ xe cơ giới đối với xe mô tô, xe gắn máy bị phạt tiền bao nhiêu?", "options": [{"letter": "A", "text": "Từ 400.000 đến 600.000 đồng."}, {"letter": "B", "text": "Từ 200.000 đến 300.000 đồng."}, {"letter": "C", "text": "Từ 50.000 đến 100.000 đồng."}, {"letter": "D", "text": "Từ 100.000 đến 200.000 đồng."}], "answer": "B"}, {"num": 116, "question": "Điều khiển xe mô tô, xe gắn máy lạng lách, đánh võng trên đường bộ bị phạt tiền bao nhiêu?", "options": [{"letter": "A", "text": "Từ 3.000.000 đến 4.000.000 đồng."}, {"letter": "B", "text": "Từ 1.000.000 đến 2.000.000 đồng."}, {"letter": "C", "text": "Từ 8.000.000 đến 10.000.000 đồng."}, {"letter": "D", "text": "Từ 6.000.000 đến 8.000.000 đồng."}], "answer": "C"}, {"num": 117, "question": "Người điều khiển xe ô tô thực hiện hành vi quay đầu xe tại nơi có biển báo \"Cấm quay đầu xe\" bị phạt tiền bao nhiêu?", "options": [{"letter": "A", "text": "Từ 2.000.000 đến 3.000.000 đồng."}, {"letter": "B", "text": "Từ 1.000.000 đến 2.000.000 đồng."}, {"letter": "C", "text": "Từ 800.000 đến 1.000.000 đồng."}, {"letter": "D", "text": "Từ 400.000 đến 600.000 đồng."}], "answer": "A"}, {"num": 118, "question": "Bấm còi xe trong đô thị và khu đông dân cư trong thời gian từ 22 giờ ngày hôm trước đến 05 giờ ngày hôm sau đối với xe ô tô bị phạt tiền bao nhiêu?", "options": [{"letter": "A", "text": "Từ 400.000 đến 600.000 đồng."}, {"letter": "B", "text": "Từ 800.000 đến 1.000.000 đồng."}, {"letter": "C", "text": "Từ 2.000.000 đến 3.000.000 đồng."}, {"letter": "D", "text": "Từ 100.000 đến 200.000 đồng."}], "answer": "A"}, {"num": 119, "question": "Người điều khiển xe mô tô hai bánh có dung tích xi-lanh đến 125 cm³ hoặc có công suất động cơ điện đến 11 kW mà không có giấy phép lái xe bị phạt tiền bao nhiêu?", "options": [{"letter": "A", "text": "Từ 4.000.000 đến 6.000.000 đồng."}, {"letter": "B", "text": "Từ 1.000.000 đến 2.000.000 đồng."}, {"letter": "C", "text": "Từ 2.000.000 đến 4.000.000 đồng."}, {"letter": "D", "text": "Từ 500.000 đến 1.000.000 đồng."}], "answer": "C"}, {"num": 120, "question": "Người điều khiển xe ô tô không có giấy phép lái xe bị phạt tiền bao nhiêu?", "options": [{"letter": "A", "text": "Từ 18.000.000 đến 20.000.000 đồng."}, {"letter": "B", "text": "Từ 4.000.000 đến 6.000.000 đồng."}, {"letter": "C", "text": "Từ 10.000.000 đến 12.000.000 đồng."}, {"letter": "D", "text": "Từ 2.000.000 đến 4.000.000 đồng."}], "answer": "A"}];
+const STORAGE_KEY = "atgt_120_game_progress_v1";
+let state = {
+  order: QUESTIONS.map((_,i)=>i),
+  current: 0,
+  score: 0,
+  right: 0,
+  wrong: 0,
+  wrongIds: [],
+  answered: false,
+  sound: true,
+  wrongOnly: false
+};
+
+function $(id) { return document.getElementById(id); }
+function show(id) {
+  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+  $(id).classList.add("active");
+}
+function showStart() { show("startScreen"); checkSaved(); }
+function showGuide() { show("guideScreen"); }
+function showResult() { show("resultScreen"); }
+
+function play(type) {
+  if (!state.sound) return;
+  const ctx = new (window.AudioContext || window.webkitAudioContext)();
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.connect(gain); gain.connect(ctx.destination);
+  let f=440, dur=.14;
+  if(type==="ok") { f=880; dur=.18; }
+  if(type==="bad") { f=130; dur=.22; }
+  if(type==="click") { f=520; dur=.07; }
+  if(type==="win") { f=660; dur=.45; }
+  osc.type = type==="bad" ? "sawtooth" : "sine";
+  osc.frequency.setValueAtTime(f, ctx.currentTime);
+  if(type==="win") {
+    osc.frequency.exponentialRampToValueAtTime(990, ctx.currentTime+.18);
+    osc.frequency.exponentialRampToValueAtTime(1320, ctx.currentTime+.45);
+  }
+  gain.gain.setValueAtTime(.0001, ctx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(.18, ctx.currentTime+.02);
+  gain.gain.exponentialRampToValueAtTime(.0001, ctx.currentTime+dur);
+  osc.start(); osc.stop(ctx.currentTime+dur+.03);
+}
+function toggleSound() {
+  state.sound=!state.sound;
+  $("soundBtn").innerHTML = state.sound ? "🔊<b>ON</b>" : "🔇<b>OFF</b>";
+  save();
+}
+
+function startGame(wrongOnly=false) {
+  localStorage.removeItem(STORAGE_KEY);
+  state = {
+    order: wrongOnly ? state.wrongIds.slice() : QUESTIONS.map((_,i)=>i),
+    current: 0, score: 0, right: 0, wrong: 0, wrongIds: [],
+    answered:false, sound: state.sound ?? true, wrongOnly
+  };
+  show("gameScreen"); renderQuestion(); save(); play("click");
+}
+function continueGame() {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if(saved) {
+    state = JSON.parse(saved);
+    show("gameScreen"); renderQuestion();
+  }
+}
+function startWrongOnly() {
+  const oldWrong = state.wrongIds.slice();
+  if(!oldWrong.length) return;
+  state.wrongIds = oldWrong;
+  startGame(true);
+  state.order = oldWrong;
+  renderQuestion();
+}
+function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+function checkSaved() {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  $("continueBtn").style.display = saved ? "inline-block" : "none";
+}
+function saveAndExit() { save(); showStart(); }
+function resetProgress() {
+  if(confirm("Làm lại từ đầu bộ 120 câu?")) startGame(false);
+}
+
+function renderQuestion() {
+  state.answered=false;
+  const total = state.order.length;
+  if(state.current >= total) return finishGame();
+  const q = QUESTIONS[state.order[state.current]];
+  const done = state.current;
+  const pct = total<=1 ? 100 : Math.round(done/(total-1)*100);
+  $("car").style.left = Math.min(91, pct*.91) + "%";
+  $("progressText").textContent = `Câu ${state.current+1} / ${total}`;
+  $("percentText").textContent = `${Math.round((state.current)/total*100)}% hành trình`;
+  $("questionNo").textContent = `🚦 Câu ${q.num}`;
+  $("remainText").textContent = `Còn ${total-state.current-1} câu`;
+  $("scoreText").textContent = state.score;
+  $("rightText").textContent = state.right;
+  $("wrongText").textContent = state.wrong;
+  $("questionText").textContent = q.question;
+  $("message").textContent = "";
+  $("message").className = "msg";
+  updateSpeed();
+  const box = $("answers");
+  box.innerHTML = "";
+  q.options.forEach(opt => {
+    const btn = document.createElement("button");
+    btn.className = "answer";
+    btn.innerHTML = `<span class="letter">${opt.letter}</span><span>${escapeHtml(opt.text)}</span>`;
+    btn.onclick = () => choose(opt.letter, btn);
+    box.appendChild(btn);
+  });
+}
+function choose(letter, btn) {
+  if(state.answered) return;
+  state.answered=true; play("click");
+  const q = QUESTIONS[state.order[state.current]];
+  const buttons = [...document.querySelectorAll(".answer")];
+  buttons.forEach(b => b.classList.add("disabled"));
+  const ok = letter === q.answer;
+  if(ok) {
+    state.right++; state.score += 10; btn.classList.add("correct");
+    $("message").textContent = "✔ Chính xác!";
+    $("message").className = "msg ok";
+    play("ok"); sparkle();
+  } else {
+    state.wrong++; state.wrongIds.push(state.order[state.current]);
+    btn.classList.add("wrong");
+    buttons.forEach(b => {
+      if(b.querySelector(".letter").textContent === q.answer) b.classList.add("correct");
+    });
+    $("message").textContent = `❌ Sai rồi! Đáp án đúng là ${q.answer}`;
+    $("message").className = "msg bad";
+    $("car").classList.add("shake"); setTimeout(()=>$("car").classList.remove("shake"),700);
+    play("bad");
+  }
+  $("scoreText").textContent = state.score;
+  $("rightText").textContent = state.right;
+  $("wrongText").textContent = state.wrong;
+  updateSpeed();
+  save();
+  setTimeout(() => { state.current++; renderQuestion(); save(); }, ok ? 900 : 1600);
+}
+function updateSpeed() {
+  const streakFactor = Math.max(0, state.right - state.wrong);
+  const speed = Math.min(120, Math.max(0, streakFactor * 5));
+  $("speedText").textContent = `${speed} km/h`;
+  $("needle").style.transform = `rotate(${-150 + speed*2.1}deg)`;
+}
+function finishGame() {
+  $("car").style.left = "91%";
+  const total = state.order.length;
+  const pct = total ? Math.round(state.right/total*1000)/10 : 0;
+  $("finalRight").textContent = state.right;
+  $("finalWrong").textContent = state.wrong;
+  $("finalScore").textContent = state.score;
+  let rank = "📚 Cần ôn thêm";
+  if(pct === 100) rank = "👑 Huyền thoại giao thông";
+  else if(pct >= 95) rank = "🥇 Xuất sắc";
+  else if(pct >= 90) rank = "🥈 Giỏi";
+  else if(pct >= 80) rank = "🥉 Khá";
+  else if(pct >= 70) rank = "👍 Đạt";
+  $("rankText").textContent = `Tỷ lệ đúng: ${pct}% — ${rank}`;
+  $("wrongOnlyBtn").style.display = state.wrongIds.length ? "inline-block" : "none";
+  localStorage.removeItem(STORAGE_KEY);
+  show("resultScreen"); play("win"); confetti();
+}
+function showReview() {
+  const list = $("reviewList");
+  if(!state.wrongIds.length) {
+    list.innerHTML = "<p>Bạn không sai câu nào. Quá tốt!</p>";
+  } else {
+    list.innerHTML = state.wrongIds.map(id => {
+      const q = QUESTIONS[id];
+      const ans = q.options.find(o=>o.letter===q.answer);
+      return `<div class="review-item"><b>Câu ${q.num}.</b> ${escapeHtml(q.question)}<br><br><b>Đáp án đúng: ${q.answer}.</b> ${escapeHtml(ans.text)}</div>`;
+    }).join("");
+  }
+  show("reviewScreen");
+}
+function sparkle() {
+  const car = $("car");
+  const s = document.createElement("span");
+  s.textContent = "✨";
+  s.style.position="absolute"; s.style.left="50%"; s.style.bottom="44px"; s.style.fontSize="28px";
+  s.style.animation="fadeIn .3s ease";
+  car.parentElement.appendChild(s);
+  setTimeout(()=>s.remove(),600);
+}
+function confetti() {
+  const c = $("confetti"); c.innerHTML="";
+  for(let i=0;i<90;i++) {
+    const s=document.createElement("span");
+    s.style.left=Math.random()*100+"vw";
+    s.style.background=["#ffd166","#21d07a","#4cc9f0","#ff4d6d","#ffffff"][i%5];
+    s.style.animationDelay=(Math.random()*1.2)+"s";
+    s.style.transform=`rotate(${Math.random()*360}deg)`;
+    c.appendChild(s);
+  }
+  setTimeout(()=>c.innerHTML="",4200);
+}
+function escapeHtml(str) {
+  return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+}
+checkSaved();
+</script>
+
+<script>
+(function(){
+  try{
+    const p=new URLSearchParams(location.search);
+    const mode=p.get('mode')||'order';
+    function shuffleInPlace(arr){ for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; } return arr; }
+    if(mode==='random' && Array.isArray(window.QUESTIONS)){ shuffleInPlace(window.QUESTIONS); }
+  }catch(e){}
+  const home=document.createElement('a');
+  home.href='index.html'; home.textContent='🏠 Trang chủ';
+  home.style.cssText='position:fixed;left:12px;bottom:12px;z-index:99999;background:rgba(0,0,0,.55);color:#fff;text-decoration:none;border:1px solid rgba(255,255,255,.25);backdrop-filter:blur(10px);padding:10px 14px;border-radius:999px;font:700 14px system-ui;box-shadow:0 8px 24px rgba(0,0,0,.25)';
+  document.addEventListener('DOMContentLoaded',()=>document.body.appendChild(home));
+})();
+</script>
+</body>
+</html>
